@@ -15,7 +15,6 @@ class AwsCdkFlaskDockerStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # The code that defines your stack goes here
         # Retrieve VPC information
         vpc = ec2.Vpc.from_lookup(
             self, 'VPC',
@@ -26,8 +25,7 @@ class AwsCdkFlaskDockerStack(Stack):
         # ECS cluster
         cluster = ecs.Cluster(self, 'MyCluster', vpc=vpc)
 
-        # SSL Certificate
-        # Replace REGION, ACCOUNT and CERTIFICATE with your certificate attributes
+        # SSL Certificate (replace with your certificate arn)
         certificate_arn = 'arn:aws:acm:REGION:ACCOUNT:certificate/CERTIFICATE'
 
         # Use ALB + Fargate from ECS patterns
@@ -35,20 +33,21 @@ class AwsCdkFlaskDockerStack(Stack):
             self, 'MyFlaskApiWithFargate',
             cluster=cluster,
             cpu=256,
+            memory_limit_mib=512,
             desired_count=1,
             assign_public_ip=True,
+            # Container image
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_asset('./server'),
                 container_port=5000),
-            memory_limit_mib=512,
+            # Routing
             public_load_balancer=True,
             protocol=elb_v2.ApplicationProtocol.HTTPS,
             redirect_http=True,
             certificate=cert_manager.Certificate.from_certificate_arn(self, 'cert', certificate_arn),
-            # R53 configuration
-            # Replace with your domain and subdomain
-            domain_name='cdk-flask-api.domain.com.',
-            domain_zone=r53.HostedZone.from_lookup(self, "MyHostedZone", domain_name="domain.com."))
+            # Replace with your domain
+            domain_name='cdk-flask-api.example.com.',
+            domain_zone=r53.HostedZone.from_lookup(self, "MyHostedZone", domain_name="example.com."))
 
         # Default target group healthcheck path is /
         # This can be customized

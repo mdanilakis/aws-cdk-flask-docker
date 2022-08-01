@@ -12,9 +12,9 @@ def health():
     return 'ok'
 
 
-@app.route('/length/<string>')
-def length(string):
-    return 'Input length {}'.format(len(string))
+@app.route('/hello/<string>')
+def hello(string):
+    return 'Hello {}'.format(string)
 
 
 if __name__ == '__main__':
